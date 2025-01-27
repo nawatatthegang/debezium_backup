@@ -1,6 +1,6 @@
 services:
   postgres-source:
-    image: postgres:17
+    image: postgres:14.10
     container_name: sourcepg
     environment:
       POSTGRES_DB: test_db
@@ -47,6 +47,36 @@ services:
     networks:
       all-seeing:
 
+  zookeeper2:
+    image: confluentinc/cp-zookeeper:7.3.0
+    container_name: zookeeper2
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      all-seeing:
+
+  kafka2:
+    image: confluentinc/cp-kafka:7.3.0
+    container_name: kafka2
+    depends_on:
+      - zookeeper
+    ports:
+      - "9093:9092"
+      - "29093:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper2:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka2:9092,PLAINTEXT_HOST://localhost:29093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 1
+    networks:
+      all-seeing:
+
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     container_name: kafka-ui
@@ -56,6 +86,8 @@ services:
       DYNAMIC_CONFIG_ENABLED: "true"
       KAFKA_CLUSTERS_0_NAME: Local Kafka
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      KAFKA_CLUSTERS_1_NAME: Local Kafka 2
+      KAFKA_CLUSTERS_1_BOOTSTRAPSERVERS: kafka2:9092
     networks:
       all-seeing:
 
@@ -69,7 +101,7 @@ services:
     ports:
       - "8083:8083"
     environment:
-      CONNECT_BOOTSTRAP_SERVERS: kafka:9092
+      CONNECT_BOOTSTRAP_SERVERS: kafka:9092,kafka2:9092
       CONNECT_REST_ADVERTISED_HOST_NAME: kafka-connect
       CONNECT_GROUP_ID: compose-connect-group
       CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
@@ -88,34 +120,34 @@ services:
     networks:
       all-seeing:
 
-  kafka-connect2:
-    build:
-      dockerfile: kafka-connect.Dockerfile
-      context: .
-    container_name: kafka-connect2
-    depends_on:
-      - kafka
-    ports:
-      - "8084:8083"
-    environment:
-      CONNECT_BOOTSTRAP_SERVERS: kafka:9092
-      CONNECT_REST_ADVERTISED_HOST_NAME: kafka-connect2
-      CONNECT_GROUP_ID: compose-connect-group2
-      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
-      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
-      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
-      CONNECT_CONFIG_STORAGE_TOPIC: docker.connect2.configs
-      CONNECT_OFFSET_STORAGE_TOPIC: docker.connect2.offsets
-      CONNECT_STATUS_STORAGE_TOPIC: docker.connect2.status
-      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
-      CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
-      CONNECT_INTERNAL_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
-      CONNECT_INTERNAL_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
-      CONNECT_REST_PORT: 8083
-      CONNECT_TOPIC_CREATION_ENABLE: true
-      CONNECT_AUTO_CREATE_TOPIC_ENABLE: true
-    networks:
-      all-seeing:
+  # kafka-connect2:
+  #   build:
+  #     dockerfile: kafka-connect.Dockerfile
+  #     context: .
+  #   container_name: kafka-connect2
+  #   depends_on:
+  #     - kafka
+  #   ports:
+  #     - "8084:8083"
+  #   environment:
+  #     CONNECT_BOOTSTRAP_SERVERS: kafka:9092
+  #     CONNECT_REST_ADVERTISED_HOST_NAME: kafka-connect2
+  #     CONNECT_GROUP_ID: compose-connect-group
+  #     CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+  #     CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+  #     CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+  #     CONNECT_CONFIG_STORAGE_TOPIC: docker.connect.configs
+  #     CONNECT_OFFSET_STORAGE_TOPIC: docker.connect.offsets
+  #     CONNECT_STATUS_STORAGE_TOPIC: docker.connect.status
+  #     CONNECT_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+  #     CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+  #     CONNECT_INTERNAL_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+  #     CONNECT_INTERNAL_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+  #     CONNECT_REST_PORT: 8083
+  #     CONNECT_TOPIC_CREATION_ENABLE: true
+  #     CONNECT_AUTO_CREATE_TOPIC_ENABLE: true
+  #   networks:
+  #     all-seeing:
 
   # ksqldb-server:
   #   image: confluentinc/ksqldb-server:latest

@@ -53,6 +53,7 @@ def get_n_posts(cursor) -> int:
 
 
 if __name__ == '__main__':
+    SLEEP_TIME = 10
     try:
         with connection:
             while True:
@@ -74,8 +75,8 @@ if __name__ == '__main__':
                     print("Comments generated.")
                     connection.commit()
 
-                print("Data generation complete! Waiting for 30 seconds... 🐾")
-                time.sleep(30)
+                print(f"Data generation completed at {time.strftime('%Y-%m-%d %H:%M:%S')}! Waiting for {SLEEP_TIME} seconds... 🐾")
+                time.sleep(SLEEP_TIME)
 
 
     except Exception as e:

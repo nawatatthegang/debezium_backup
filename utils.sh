@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PORT=8084
+PORT=8083
 
 if [[ $# -eq 0 ]]; then
 	echo "Usage:"
