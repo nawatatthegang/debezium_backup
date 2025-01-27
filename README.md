@@ -51,6 +51,9 @@
 
 คิดว่าวิธีที่ใกล้เคียงที่สุดคือใช้ health check script เพื่อดูว่า active cluster ระเบิดรึเปล่า ถ้าระเบิดก็ให้เปลี่ยน bootstrap server hostname สำหรับ Kafka Connect เพื่อให้มันต่อกับ standby cluster แล้วใช้แทนเป็น active แล้วค่อยให้ devops มาแก้กลับหลังจาก recover cluster เก่าหรือสร้าง cluster ใหม่ไปแล้ว
 
+- [docs configuring Replicator for failover](https://docs.confluent.io/platform/current/multi-dc-deployments/replicator/replicator-failover.html) ก็มีแต่บอกว่าต้องทำยังไงให้ consumer สามารถ failover ได้แต่ไม่ได้พูดถึง producer
+- [docs ของ Kafka Connect](https://kafka.apache.org/documentation/#connect) ก็ไม่ได้พูดถึงว่าการตั้ง failover ให้ Kafka Connect ต้องตั้งยังไง
+
 ## Preparing for when Kafka cluster and Kafka Connect is gone
 
 ถ้าจะโชคร้ายขนาดนี้ เริ่มไม่ทั้งหมดเลยดีกว่า =p
